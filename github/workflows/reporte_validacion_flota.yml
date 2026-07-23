@@ -3,13 +3,6 @@ name: Reporte validación de flota
 on:
   workflow_dispatch:
 
-  schedule:
-    - cron: "30 7 * * 1-6"
-      timezone: "America/Santiago"
-
-    - cron: "0 15 * * 1-6"
-      timezone: "America/Santiago"
-
 permissions:
   contents: read
 
