@@ -38,6 +38,10 @@ PREFIJO_ASUNTO = os.getenv(
     "[VALIDACION FLOTA]",
 ).strip()
 
+CORREO_ORIGEN = os.environ["CORREO_ORIGEN"]
+CORREO_DESTINO = os.environ["CORREO_DESTINO"]
+GMAIL_APP_PASSWORD = os.environ["GMAIL_APP_PASSWORD"]
+
 COLUMNAS_EVENTO = [
     "vehicle_code",
     "description",
@@ -462,71 +466,38 @@ def adjuntar_archivo(mensaje, ruta):
 
 
 def enviar_correo(asunto, cuerpo_html):
-    smtp_host = obtener_variable_obligatoria("SMTP_HOST")
-    smtp_port = leer_entero("SMTP_PORT", 587)
-    smtp_user = obtener_variable_obligatoria("SMTP_USER")
-    smtp_password = obtener_variable_obligatoria("SMTP_PASSWORD")
-
-    remitente = os.getenv("EMAIL_FROM", "").strip() or smtp_user
-    destinatarios = separar_correos(
-        obtener_variable_obligatoria("EMAIL_TO")
-    )
-    copias = separar_correos(os.getenv("EMAIL_CC", ""))
-
-    usar_ssl = leer_booleano("SMTP_USE_SSL", Tue)
-    usar_starttls = leer_booleano(
-        "SMTP_USE_STARTTLS",
-        not usar_ssl,
-    )
-
     mensaje = EmailMessage()
     mensaje["Subject"] = asunto
-    mensaje["From"] = remitente
-    mensaje["To"] = ", ".join(destinatarios)
-
-    if copias:
-        mensaje["Cc"] = ", ".join(copias)
+    mensaje["From"] = CORREO_ORIGEN
+    mensaje["To"] = CORREO_DESTINO
 
     mensaje.set_content(
         "Reporte de validación de estado de flota. "
         "El correo requiere visualización HTML."
     )
-    mensaje.add_alternative(cuerpo_html, subtype="html")
 
-    adjuntar_archivo(mensaje, ARCHIVO_EXCEL)
+    mensaje.add_alternative(
+        cuerpo_html,
+        subtype="html",
+    )
 
-    receptores = destinatarios + copias
+    adjuntar_archivo(
+        mensaje,
+        ARCHIVO_EXCEL,
+    )
 
-    if usar_ssl:
-        with smtplib.SMTP_SSL(
-            smtp_host,
-            smtp_port,
-            timeout=90,
-        ) as servidor:
-            servidor.login(smtp_user, smtp_password)
-            servidor.send_message(
-                mensaje,
-                from_addr=remitente,
-                to_addrs=receptores,
-            )
-    else:
-        with smtplib.SMTP(
-            smtp_host,
-            smtp_port,
-            timeout=90,
-        ) as servidor:
-            servidor.ehlo()
+    with smtplib.SMTP_SSL(
+        "smtp.gmail.com",
+        465,
+        timeout=90,
+    ) as servidor:
+        servidor.login(
+            CORREO_ORIGEN,
+            GMAIL_APP_PASSWORD,
+        )
+        servidor.send_message(mensaje)
 
-            if usar_starttls:
-                servidor.starttls()
-                servidor.ehlo()
 
-            servidor.login(smtp_user, smtp_password)
-            servidor.send_message(
-                mensaje,
-                from_addr=remitente,
-                to_addrs=receptores,
-            )
 
 
 # ============================================================
@@ -794,14 +765,8 @@ def generar_reporte():
         f"{kpis['Incorrectamente clasificados']}"
     )
 
-    if leer_booleano("ENVIAR_CORREO", False):
-        enviar_correo(asunto, cuerpo_html)
-        print("Correo enviado correctamente.")
-    else:
-        print(
-            "El correo no se envió porque ENVIAR_CORREO "
-            "no está configurado como true."
-        )
+    enviar_correo(asunto, cuerpo_html)
+    print("Correo enviado correctamente.")
 
 
 if __name__ == "__main__":
