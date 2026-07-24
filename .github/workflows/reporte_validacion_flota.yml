@@ -1,4 +1,4 @@
-name: Reporte validación flota
+name: Reporte validación estado flota
 
 on:
   workflow_dispatch:
@@ -16,25 +16,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Instalar dependencias
+      - name: Instalar librerías
         run: |
           python -m pip install --upgrade pip
-          pip install pandas requests openpyxl matplotlib
+          pip install requests pandas openpyxl
 
       - name: Generar reporte y enviar correo
         env:
           DRIVIN_API_KEY: ${{ secrets.DRIVIN_API_KEY }}
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_TO: ${{ secrets.EMAIL_TO }}
-        run: python eventos_mal_clasificados_correo.py
+          CORREO_ORIGEN: ${{ secrets.EMAIL_USER }}
+          CORREO_DESTINO: ${{ secrets.EMAIL_TO }}
+          GMAIL_APP_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
 
-      - name: Guardar reporte como artefacto
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: reporte-validacion-flota
-          path: |
-            validacion_estado_flota.xlsx
-            kpi_validacion_flota.png
-          if-no-files-found: ignore
+        run: python eventos_mal_clasificados_correo.py
