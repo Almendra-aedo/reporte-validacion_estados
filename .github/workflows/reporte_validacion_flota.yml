@@ -23,6 +23,7 @@ jobs:
 
       - name: Generar reporte y enviar correo
         env:
+          ENVIAR_CORREO: "true"
           DRIVIN_API_KEY: ${{ secrets.DRIVIN_API_KEY }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
