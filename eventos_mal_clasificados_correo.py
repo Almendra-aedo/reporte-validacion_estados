@@ -473,7 +473,7 @@ def enviar_correo(asunto, cuerpo_html):
     )
     copias = separar_correos(os.getenv("EMAIL_CC", ""))
 
-    usar_ssl = leer_booleano("SMTP_USE_SSL", False)
+    usar_ssl = leer_booleano("SMTP_USE_SSL", Tue)
     usar_starttls = leer_booleano(
         "SMTP_USE_STARTTLS",
         not usar_ssl,
